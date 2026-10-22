@@ -1,0 +1,30 @@
+name: Deploy HailShogun to Amazon S3
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm test
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+      - name: Publish static site
+        env:
+          BUCKET: ${{ vars.S3_BUCKET || 'hailshogun' }}
+        run: |
+          aws s3 cp index.html "s3://$BUCKET/index.html" --content-type "text/html; charset=utf-8"
+          aws s3 cp css/styles.css "s3://$BUCKET/css/styles.css" --content-type "text/css; charset=utf-8"
+          aws s3 cp js/engine.js "s3://$BUCKET/js/engine.js" --content-type "text/javascript; charset=utf-8"
+          aws s3 cp js/icons.js "s3://$BUCKET/js/icons.js" --content-type "text/javascript; charset=utf-8"
+          aws s3 cp js/app.js "s3://$BUCKET/js/app.js" --content-type "text/javascript; charset=utf-8"
+          aws s3 cp assets/18th-wing.png "s3://$BUCKET/assets/18th-wing.png" --content-type "image/png"
+          aws s3 cp assets/okinawa-flight.jpg "s3://$BUCKET/assets/okinawa-flight.jpg" --content-type "image/jpeg"
